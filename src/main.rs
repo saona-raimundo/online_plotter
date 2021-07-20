@@ -136,8 +136,13 @@ impl Component for Model {
                 <p>{ "Select the domain." }</p>
                 <input type="number" id="left" name="left" value=self.input.domain.0.to_string() max=self.input.domain.1.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Left(x))/>
                 <input type="number" id="right" name="right" value=self.input.domain.1.to_string() min=self.input.domain.0.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Right(x))/>
-                <p></p>
+                <br/>
                 <canvas ref={self.canvas_ref.clone()} />
+                <footer id="footer" name="footnote">
+                <p id="authorship" name="authorship">
+                    { "Author: " }<a href="https://saona-raimundo.github.io/">{ "Raimundo Saona" }</a>
+                </p>
+                </footer>
             </div>
         }
     }
