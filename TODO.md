@@ -2,12 +2,10 @@
 
 ## More settings
 
-- Toggle 
-  - Mesh
-  - Axis
-- Add
-  - Functions (and toggle them)
-  - Input points (instead of a functional definition)
+- FnInput
+  - Handle points
+- Toggle
+  - display
 
 # Hosting
 
