@@ -2,7 +2,14 @@
 	<meta charset="utf-8">    
 	<title>Online plotting</title>  
 	
-<link rel="preload" href="./index-e0537d81cb66b4d0_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="./index-e0537d81cb66b4d0.js"></head>
-	<body><noscript>This website uses JavaScript, please enable it to discover it!</noscript>&gt;
-<script type="module">import init from '/index-e0537d81cb66b4d0.js';init('/index-e0537d81cb66b4d0_bg.wasm');</script></body></html>
+	<link rel="preload" href="/index-e0537d81cb66b4d0_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+	<link rel="modulepreload" href="/index-e0537d81cb66b4d0.js"></head>
+	<body>
+		<noscript>This website uses JavaScript, please enable it to discover it!</noscript>
+		&gt;
+		<script type="module">
+			import init from './index-e0537d81cb66b4d0.js';
+			init('./index-e0537d81cb66b4d0_bg.wasm');
+		</script>
+	</body>
+</html>
