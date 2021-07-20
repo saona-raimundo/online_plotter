@@ -1,4 +1,16 @@
+# Features
+
+## More settings
+
+- Toggle 
+  - Mesh
+  - Axis
+- Add
+  - Functions (and toggle them)
+  - Input points (instead of a functional definition)
+
 # Hosting
+
 ## On GitHub
 
 To host a WASM app in GitHub, do the following:
@@ -10,4 +22,21 @@ To host a WASM app in GitHub, do the following:
   ```
 
 - Copy from `dist` folder to `docs` folder to update github-pages.
+
+- Change the path of the `.js` and `.wasm` files.
+  From
+
+  ```
+  import init from '/index-e0537d81cb66b4d0.js';
+  init('/index-e0537d81cb66b4d0_bg.wasm');
+  ```
+
+  To 
+
+  ```
+  import init from './index-e0537d81cb66b4d0.js';
+  init('./index-e0537d81cb66b4d0_bg.wasm');
+  ```
+
+  (adds a dot `.`)
 
