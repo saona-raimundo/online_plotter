@@ -1,8 +1,10 @@
 [package]
-name = "yew_test"
+name = "online-plotter"
 version = "0.1.0"
 authors = ["raimundo saona <rasa200@gmail.com>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,3 +22,5 @@ exmex = "0.6.0"
 serde = "1.0.126"
 ron = "0.6.4"
 splines = "4.0.3"
+anyhow = "1.0.42"
+thiserror = "1.0.26"

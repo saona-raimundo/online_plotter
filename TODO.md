@@ -1,3 +1,16 @@
+# Library
+
+## app -> library
+
+### Canvas
+
+- Check out [yew-components](https://crates.io/crates/yew-components/0.3.0)
+- Create yew_plotters crate
+
+### Testing
+
+- use [wasm-bindgen-test](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html)
+
 # Features
 
 ## Frontend
@@ -40,4 +53,6 @@ To host a WASM app in GitHub, do the following:
   ```
 
   (adds a dot `.`)
+  
+- Check with `miniserve`.
 

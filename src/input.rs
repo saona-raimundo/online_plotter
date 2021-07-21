@@ -1,76 +1,7 @@
-use exmex::FlatEx;
-use splines::Spline;
 use yew::prelude::*;
 
-#[derive(Debug, Clone)]
-pub struct FnInput {
-    pub show: bool,
-    pub string: String,
-    pub kind: FnInputKind,
-}
-
-#[derive(Debug, Clone)]
-pub enum FnInputKind {
-    Analytical { expression: FlatEx<f64> },
-    Points { spline: Spline<f64, f64> }, //values:  Vec<(f64, f64)> },
-}
-impl Default for FnInputKind {
-    fn default() -> Self {
-        let string = "sin({x})".to_string();
-        FnInputKind::Analytical {
-            expression: exmex::parse::<f64>(&string, exmex::make_default_operators::<f64>())
-                .unwrap(),
-        }
-    }
-}
-
-impl Default for FnInput {
-    fn default() -> Self {
-        let string = "sin({x})".to_string();
-        FnInput {
-            string: string,
-            show: true,
-            kind: FnInputKind::default(),
-        }
-    }
-}
-
-impl FnInput {
-    pub fn show(&self) -> bool {
-        self.show
-    }
-    pub fn toggle(&mut self) -> &mut Self {
-        log::trace!("Toggling a fn_input");
-        self.show = !self.show;
-        log::trace!("Now show is {}", self.show());
-        self
-    }
-    pub fn kind(&self) -> &FnInputKind {
-        &self.kind
-    }
-    // pub fn kind_mut(&mut self) -> &mut FnInputKind {
-    //     &mut self.kind
-    // }
-    pub fn set_kind(&mut self, kind: FnInputKind) -> &mut Self {
-        self.kind = kind;
-        self
-    }
-    pub fn set_string(&mut self, s: String) -> &mut Self {
-        self.string = s;
-        self
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn toggle() {
-        let mut fn_input = FnInput::default();
-        assert_eq!(fn_input.show(), !fn_input.toggle().show());
-    }
-}
+mod fn_input;
+pub use fn_input::{FnInput, FnInputKind};
 
 #[derive(Debug, Clone)]
 pub struct Input {
@@ -112,4 +43,57 @@ pub enum Set {
     Quality(ChangeData),
     CanvasWidth(ChangeData),
     CanvasHeight(ChangeData),
+}
+
+impl Input {
+    pub fn update(&mut self, set: Set) -> ShouldRender {
+        match set {
+            Set::TitleString(data) => {
+                if let ChangeData::Value(s) = data {
+                    self.title_string = s;
+                }
+                true
+            }
+            Set::Title => {
+                self.title = !self.title;
+                true
+            }
+            Set::Mesh => {
+                self.mesh = !self.mesh;
+                true
+            }
+            Set::XAxis => {
+                self.x_axis = !self.x_axis;
+                true
+            }
+            Set::YAxis => {
+                self.y_axis = !self.y_axis;
+                true
+            }
+            Set::CanvasWidth(data) => {
+                if let ChangeData::Value(x) = data {
+                    log::trace!("Trying to change canvas width to {}", x);
+                    let proposal: u32 = x.parse().unwrap();
+                    self.canvas_size.0 = proposal;
+                }
+                true
+            }
+            Set::CanvasHeight(data) => {
+                if let ChangeData::Value(x) = data {
+                    log::trace!("Trying to change canvas width to {}", x);
+                    let proposal: u32 = x.parse().unwrap();
+                    self.canvas_size.1 = proposal;
+                }
+                true
+            }
+            Set::Quality(data) => {
+                if let ChangeData::Value(x) = data {
+                    log::trace!("Trying to change quality to {}", x);
+                    let proposal: usize = x.parse().unwrap();
+                    self.quality = proposal;
+                }
+                true
+            }
+        }
+    }
 }
