@@ -1,27 +1,22 @@
 use itertools::Itertools;
 use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
+use splines::{interpolation::Interpolation, key::Key, spline::Spline};
 use web_sys::HtmlCanvasElement;
 use yew::prelude::*;
 
-const CANVAS_WIDTH: u32 = 720;
-const CANVAS_HEIGHT: u32 = 720;
-const GRID_POINTS: usize = 100;
-
 mod input;
-use input::{FnInput, Input, Set};
+use input::{FnInput, FnInputKind, Input, Set};
 
 enum Msg {
     Left(ChangeData),
     Right(ChangeData),
     AddFnInput,
     Function(usize, ChangeData),
-    ToggleFunctionFormat(usize),
+    ToggleFunction(usize),
     Auxiliary(Set),
 }
 struct Model {
-    // `ComponentLink` is like a reference to a component.
-    // It can be used to send messages to the component
     link: ComponentLink<Self>,
     canvas_ref: NodeRef,
     input: Input,
@@ -38,8 +33,8 @@ impl Component for Model {
     }
     fn rendered(&mut self, _first_render: bool) {
         let canvas: HtmlCanvasElement = self.canvas_ref.cast::<HtmlCanvasElement>().unwrap();
-        canvas.set_width(CANVAS_WIDTH);
-        canvas.set_height(CANVAS_HEIGHT);
+        canvas.set_width(self.input.canvas_size.0);
+        canvas.set_height(self.input.canvas_size.1);
 
         let backend: CanvasBackend = CanvasBackend::with_canvas_object(canvas).unwrap();
 
@@ -48,24 +43,68 @@ impl Component for Model {
             let root = backend.into_drawing_area();
             root.fill(&WHITE).unwrap();
 
-            let grid =
-                itertools_num::linspace(self.input.domain.0, self.input.domain.1, GRID_POINTS);
+            let grid = itertools_num::linspace(
+                self.input.domain.0,
+                self.input.domain.1,
+                self.input.quality,
+            );
 
             let mut values_collection = vec![];
             let mut overall_min = f64::INFINITY;
             let mut overall_max = f64::NEG_INFINITY;
 
-            for function_input in &self.input.functions {
-                match function_input {
-                    FnInput::Analytical { expression, .. } => {
-                        let values: Vec<f64> =
-                            grid.clone().map(|x| expression.eval(&[x])).collect();
-                        let (min, max) = values.iter().minmax().into_option().unwrap();
-                        overall_min = min.min(overall_min);
-                        overall_max = max.max(overall_max);
-                        values_collection.push(values);
+            if self
+                .input
+                .functions
+                .iter()
+                .all(|function_input| !function_input.show())
+            {
+                log::trace!("There is no function to plot.");
+                overall_min = -1.;
+                log::warn!("min value changed to {}", overall_min);
+                overall_max = 1.;
+                log::warn!("max value changed to {}", overall_max);
+            } else {
+                for function_input in &self.input.functions {
+                    if function_input.show() {
+                        match function_input.kind() {
+                            FnInputKind::Analytical { expression, .. } => {
+                                let values: Vec<f64> =
+                                    grid.clone().map(|x| expression.eval(&[x])).collect();
+                                let (min, max) = values.iter().minmax().into_option().unwrap();
+                                overall_min = min.min(overall_min);
+                                overall_max = max.max(overall_max);
+                                values_collection.push(values);
+                            }
+                            FnInputKind::Points { spline } => {
+                                let values: Vec<f64> = grid
+                                    .clone()
+                                    .map(|x| spline.clamped_sample(x).unwrap())
+                                    .collect();
+                                let (min, max) = values.iter().minmax().into_option().unwrap();
+                                overall_min = min.min(overall_min);
+                                overall_max = max.max(overall_max);
+                                values_collection.push(values);
+                            }
+                        }
                     }
-                    FnInput::Points(_) => todo!(),
+                }
+
+                log::trace!(
+                    "Num max/min values of the plot: ({}, {})",
+                    overall_max,
+                    overall_min
+                );
+
+                if !overall_min.is_finite() {
+                    log::error!("min value is not real!");
+                    overall_min = -1.;
+                    log::warn!("min value changed to {}", overall_min);
+                }
+                if !overall_max.is_finite() {
+                    log::error!("max value is not real!");
+                    overall_max = 1.;
+                    log::warn!("max value changed to {}", overall_max);
                 }
             }
 
@@ -94,10 +133,12 @@ impl Component for Model {
             }
             mesh_style.draw().unwrap();
 
-            for values in values_collection {
-                chart
-                    .draw_series(LineSeries::new(grid.clone().zip(values), &BLACK))
-                    .unwrap();
+            if !values_collection.is_empty() {
+                for values in values_collection {
+                    chart
+                        .draw_series(LineSeries::new(grid.clone().zip(values), &BLACK))
+                        .unwrap();
+                }
             }
         }
     }
@@ -120,33 +161,41 @@ impl Component for Model {
                 }
                 true
             }
-            Msg::ToggleFunctionFormat(index) => {
-                log::trace!("Trying to change function {} format", index);
-                let new_fn_input = ();
-                todo!();
+            Msg::ToggleFunction(index) => {
+                log::trace!("Trying to toggle function {}", index);
+                self.input.functions[index].toggle();
+                log::trace!("Function {} toggled", index);
                 true
             }
             Msg::Function(index, data) => {
-                if let ChangeData::Value(f) = data {
-                    log::trace!("Trying to change function {} to {}", index, f);
-                    match self.input.functions[index].clone() {
-                        FnInput::Analytical { .. } => {
-                            self.input.functions[index] = FnInput::Analytical {
-                                expression: exmex::parse(
-                                    &f,
-                                    exmex::make_default_operators::<f64>(),
-                                )
-                                .unwrap(),
-                                string: f.clone(),
-                            }
-
-                            // string = f.clone();
-                            // let proposal =
-                            //     exmex::parse(&f, exmex::make_default_operators::<f64>()).unwrap();
-                            // expression = proposal;
+                if let ChangeData::Value(mut f) = data {
+                    log::trace!("Trying to change function index {} to {}", index, f);
+                    let kind = if let Ok(expression) =
+                        exmex::parse(&f, exmex::make_default_operators::<f64>())
+                    {
+                        log::debug!("We noticed an analyical function :)");
+                        FnInputKind::Analytical { expression }
+                    } else {
+                        if let Ok(values) = ron::de::from_str::<Vec<(f64, f64)>>(&f) {
+                            log::debug!("We noticed a collection of points");
+                            let spline = Spline::from_iter(
+                                values
+                                    .iter()
+                                    .map(|(x, y)| Key::new(*x, *y, Interpolation::Cosine)),
+                            );
+                            FnInputKind::Points { spline }
+                        } else {
+                            log::error!("\
+                                The input was not an anlytical function nor a collection of points!\n\
+                                Input: {}", f);
+                            log::warn!("Function changed to default input.");
+                            let fn_input = FnInput::default();
+                            f = fn_input.string.clone();
+                            fn_input.kind().clone()
                         }
-                        FnInput::Points(_) => todo!(),
-                    }
+                    };
+
+                    self.input.functions[index].set_kind(kind).set_string(f);
                 }
                 true
             }
@@ -178,6 +227,30 @@ impl Component for Model {
                     self.input.y_axis = !self.input.y_axis;
                     true
                 }
+                Set::CanvasWidth(data) => {
+                    if let ChangeData::Value(x) = data {
+                        log::trace!("Trying to change canvas width to {}", x);
+                        let proposal: u32 = x.parse().unwrap();
+                        self.input.canvas_size.0 = proposal;
+                    }
+                    true
+                }
+                Set::CanvasHeight(data) => {
+                    if let ChangeData::Value(x) = data {
+                        log::trace!("Trying to change canvas width to {}", x);
+                        let proposal: u32 = x.parse().unwrap();
+                        self.input.canvas_size.1 = proposal;
+                    }
+                    true
+                }
+                Set::Quality(data) => {
+                    if let ChangeData::Value(x) = data {
+                        log::trace!("Trying to change quality to {}", x);
+                        let proposal: usize = x.parse().unwrap();
+                        self.input.quality = proposal;
+                    }
+                    true
+                }
             },
         }
     }
@@ -188,15 +261,17 @@ impl Component for Model {
 
     fn view(&self) -> Html {
         html! {
-            <div>
-                // Form from yew?
+            <>
                 <p>{ "Main settings" }</p>
 
                 <p>
                     { "Input the functions to plot." }
-                    <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another" }</button>
+                    <div class="tooltip">{ "Available fomats?" }
+                        <span class="tooltiptext">{ "analytical: sin({x})\npoints: [(0, 2), (1, 3.5)]" }</span>
+                    </div>
                 </p>
                 { for (0..self.input.functions.len()).map(|index| self.html_fn_input(index)) }
+                <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another" }</button>
 
 
                 <p>{ "Select the domain." }</p>
@@ -209,17 +284,30 @@ impl Component for Model {
 
                 <p>{ "Auxiliary settings" }</p>
 
-                <input type="checkbox" id="title" name="title" checked=self.input.title onchange=self.link.callback(|_| Msg::Auxiliary(Set::Title))/>
-                { "Title" } <input type="text" id="title_string" name="title_string" value=self.input.title_string.clone() onchange=self.link.callback(|s| Msg::Auxiliary(Set::TitleString(s)))/>
+                <div class="auxiliary_settings">
+                    <input type="checkbox" id="title" name="title" checked=self.input.title onchange=self.link.callback(|_| Msg::Auxiliary(Set::Title))/>
+                    { "Title" }
+                    <input type="text" id="title_string" name="title_string" value=self.input.title_string.clone() onchange=self.link.callback(|s| Msg::Auxiliary(Set::TitleString(s)))/>
 
-                <input type="checkbox" id="mesh" name="mesh" checked=self.input.mesh onchange=self.link.callback(|_| Msg::Auxiliary(Set::Mesh))/>
-                { "Mesh" }
+                    <input type="checkbox" id="mesh" name="mesh" checked=self.input.mesh onchange=self.link.callback(|_| Msg::Auxiliary(Set::Mesh))/>
+                    { "Mesh" }
 
-                <input type="checkbox" id="x_axis" name="x_axis" checked=self.input.x_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::XAxis))/>
-                { "X-Axis" }
+                    <input type="checkbox" id="x_axis" name="x_axis" checked=self.input.x_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::XAxis))/>
+                    { "X-Axis" }
 
-                <input type="checkbox" id="y_axis" name="y_axis" checked=self.input.y_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::YAxis))/>
-                { "Y-Axis" }
+                    <input type="checkbox" id="y_axis" name="y_axis" checked=self.input.y_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::YAxis))/>
+                    { "Y-Axis" }
+
+                    { "Quality" }
+                    <input type="range" id="quality" name="quality" min="2" max="1000" value=self.input.quality.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::Quality(x)))/>
+
+                    { "Canvas" }
+                    <input type="range" id="canvas_width" name="canvas_width" min="5" max="1600" value=self.input.canvas_size.0.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasWidth(x)))/>
+                    { "width" }
+
+                    <input type="range" id="canvas_height" name="canvas_height" min="5" max="1600" value=self.input.canvas_size.1.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasHeight(x)))/>
+                    { "height" }
+                </div>
 
 
                 <footer id="footer" name="footnote">
@@ -227,30 +315,23 @@ impl Component for Model {
                     { "Author: " }<a href="https://saona-raimundo.github.io/">{ "Raimundo Saona" }</a>
                 </p>
                 </footer>
-            </div>
+            </>
         }
     }
 }
 
 impl Model {
     fn html_fn_input(&self, index: usize) -> Html {
-        let fn_string = match &self.input.functions[index] {
-            FnInput::Analytical { string, .. } => string.clone(),
-            FnInput::Points(_) => "points".to_string(),
-        };
-        let example_string = match &self.input.functions[index] {
-            FnInput::Analytical { .. } => "(with curly brackets for the variable x)",
-            FnInput::Points(_) => "(with format [(x1, y1), (x2, y2), ..., (xn, yn)])",
-        };
+        let fn_input = &self.input.functions[index];
+
+        let label = format!("fn_input_{}", index);
+
+        let fn_string = fn_input.string.clone();
 
         html! {
             <>
-                <input type="text" id="fn_input" name="fn_input" autofocus=true value=fn_string onchange=self.link.callback(move |f| Msg::Function(index, f))/>
-                <select name="cars" id="cars" onchange=self.link.callback(|_| Msg::ToggleFunctionFormat(0))>
-                  <option value="functional">{ "Function" }</option>
-                  <option value="points">{ "Points" }</option>
-                </select>
-                { example_string }
+                <input type="checkbox" id="y_axis" name="y_axis" checked=fn_input.show() onchange=self.link.callback(move |_| Msg::ToggleFunction(index))/>
+                <input type="text" id={ label.clone() } name={ label } autofocus=true value=fn_string onchange=self.link.callback(move |f| Msg::Function(index, f))/>
                 <br/>
             </>
         }

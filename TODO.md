@@ -1,13 +1,16 @@
 # Features
 
-## More settings
+## Frontend
 
-- FnInput
-  - Handle points
-- Toggle
-  - display
+## Backend
 
-# Hosting
+### Storage
+
+- Save session locally
+
+
+
+# Hosting (info, not to do)
 
 ## On GitHub
 
