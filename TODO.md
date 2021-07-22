@@ -1,6 +1,6 @@
 # Library
 
-## app -> library
+## app -> library?
 
 ### Canvas
 
@@ -12,6 +12,13 @@
 - use [wasm-bindgen-test](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html)
 
 # Features
+
+## Website
+
+- FAQ
+  - Static
+- Comments
+  - Discuss
 
 ## Frontend
 
