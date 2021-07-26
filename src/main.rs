@@ -29,7 +29,7 @@ impl Component for Model {
         Self {
             link,
             canvas_ref: NodeRef::default(),
-            input: Input::default(),
+            input: Input::restore(),
         }
     }
     fn rendered(&mut self, first_render: bool) {
@@ -100,7 +100,7 @@ impl Component for Model {
                 true
             }
 
-            Msg::Auxiliary(set) => self.input.update(set),
+            Msg::Auxiliary(set) => self.input.update_and_store(set),
         }
     }
 
@@ -219,8 +219,10 @@ impl Model {
                 if function_input.show() {
                     match function_input.kind() {
                         FnInputKind::Analytical { expression, .. } => {
-                            let values: Vec<f64> =
-                                grid.clone().map(|x| expression.eval(&[x])).collect();
+                            let values: Vec<f64> = grid
+                                .clone()
+                                .map(|x| expression.eval(&[x]).unwrap())
+                                .collect();
                             let (min, max) = values.iter().minmax().into_option().unwrap();
                             overall_min = min.min(overall_min);
                             overall_max = max.max(overall_max);

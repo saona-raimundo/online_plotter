@@ -1,8 +1,10 @@
-# online_plotter
-Online plotter of mathematical functions
+# simple
+Integration of plotters in yew!
 
-[Try it out!](https://saona-raimundo.github.io/online_plotter)
+This is a very simple example.
+
+[Check it out!](https://saona-raimundo.github.io/online_plotter/simple)
 
 ## Inspiration
 
-http://www.fooplot.com
+[Full version](https://saona-raimundo.github.io/online_plotter)

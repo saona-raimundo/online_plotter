@@ -1,6 +1,7 @@
 use core::fmt::Display;
 use core::str::FromStr;
 use exmex::FlatEx;
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use splines::{interpolation::Interpolation, key::Key, spline::Spline};
 use thiserror::Error;
 
@@ -13,11 +14,12 @@ impl Default for FnInputKind {
     fn default() -> Self {
         let string = "sin({x})".to_string();
         FnInputKind::Analytical {
-            expression: exmex::parse::<f64>(&string, exmex::make_default_operators::<f64>())
+            expression: exmex::parse::<f64>(&string, &exmex::make_default_operators::<f64>())
                 .unwrap(),
         }
     }
 }
+
 #[derive(Error, Debug)]
 pub struct FormatError(String);
 impl Display for FormatError {
@@ -32,7 +34,7 @@ impl Display for FormatError {
 impl FromStr for FnInputKind {
     type Err = FormatError;
     fn from_str(s: &str) -> Result<Self, FormatError> {
-        if let Ok(expression) = exmex::parse(s, exmex::make_default_operators::<f64>()) {
+        if let Ok(expression) = exmex::parse(s, &exmex::make_default_operators::<f64>()) {
             log::debug!("We noticed an analyical function :)");
             Ok(FnInputKind::Analytical { expression })
         } else {
@@ -89,6 +91,38 @@ impl FnInput {
     pub fn set_string(&mut self, s: String) -> &mut Self {
         self.string = s;
         self
+    }
+}
+
+impl Serialize for FnInput {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("FnInput", 2)?;
+        s.serialize_field("show", &self.show)?;
+        s.serialize_field("string", &self.string)?;
+        s.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for FnInput {
+    fn deserialize<D>(deserializer: D) -> Result<FnInput, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Debug, Clone, Deserialize)]
+        pub struct __FnInput {
+            pub show: bool,
+            pub string: String,
+        }
+        let __fn_input = __FnInput::deserialize(deserializer)?;
+        let kind = FnInputKind::from_str(&__fn_input.string).unwrap();
+        Ok(FnInput {
+            show: __fn_input.show,
+            string: __fn_input.string,
+            kind,
+        })
     }
 }
 

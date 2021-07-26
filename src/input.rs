@@ -1,9 +1,11 @@
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
+use yew::services::storage::{Area, StorageService};
 
 mod fn_input;
 pub use fn_input::{FnInput, FnInputKind};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Input {
     pub canvas_size: (u32, u32),
     pub domain: (f64, f64),
@@ -14,6 +16,21 @@ pub struct Input {
     pub title_string: String,
     pub quality: usize,
     pub functions: Vec<FnInput>,
+}
+
+const KEY: &'static str = "online_plotter.input";
+impl Input {
+    pub fn restore() -> Self {
+        log::trace!("Restoring values from storage");
+        let storage = StorageService::new(Area::Local).unwrap();
+        storage.restore(KEY)
+    }
+
+    pub fn store(&self) {
+        log::trace!("Storing values into storage");
+        let mut storage = StorageService::new(Area::Local).unwrap();
+        storage.store(KEY, self);
+    }
 }
 
 impl Default for Input {
@@ -33,6 +50,30 @@ impl Default for Input {
     }
 }
 
+impl From<yew::format::Text> for Input {
+    fn from(text: yew::format::Text) -> Self {
+        log::trace!("Transforming text into Input, source {:?}", text);
+        match text {
+            Ok(string) => {
+                log::trace!("Found previous record! {}", string);
+                ron::de::from_str(&string).unwrap()
+            }
+            Err(e) => {
+                log::error!("Failed to find previous record! {:?}", e);
+                log::warn!("Input changed to default.");
+                Self::default()
+            }
+        }
+    }
+}
+
+impl Into<yew::format::Text> for &Input {
+    fn into(self) -> yew::format::Text {
+        log::trace!("Transforming Input into Text");
+        Ok(ron::ser::to_string(self)?)
+    }
+}
+
 #[derive(Debug)]
 pub enum Set {
     TitleString(ChangeData),
@@ -46,6 +87,11 @@ pub enum Set {
 }
 
 impl Input {
+    pub fn update_and_store(&mut self, set: Set) -> ShouldRender {
+        let should_render = self.update(set);
+        self.store();
+        should_render
+    }
     pub fn update(&mut self, set: Set) -> ShouldRender {
         match set {
             Set::TitleString(data) => {

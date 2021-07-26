@@ -24,10 +24,6 @@
 
 ## Backend
 
-### Storage
-
-- Save session locally
-
 
 
 # Hosting (info, not to do)
