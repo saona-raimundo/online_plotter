@@ -38,6 +38,7 @@ impl FromStr for FnInputKind {
             log::debug!("We noticed an analyical function :)");
             Ok(FnInputKind::Analytical { expression })
         } else {
+            log::debug!("We noticed it was not an analyical function.");
             if let Ok(values) = ron::de::from_str::<Vec<(f64, f64)>>(s) {
                 let spline = Spline::from_iter(
                     values

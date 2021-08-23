@@ -2,8 +2,7 @@ use core::str::FromStr;
 use itertools::Itertools;
 use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
-use wasm_bindgen::JsCast;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+use web_sys::HtmlCanvasElement;
 use yew::prelude::*;
 
 mod input;
@@ -32,26 +31,12 @@ impl Component for Model {
             input: Input::restore(),
         }
     }
-    fn rendered(&mut self, first_render: bool) {
+    fn rendered(&mut self, _first_render: bool) {
         let canvas: HtmlCanvasElement = self.canvas_ref.cast::<HtmlCanvasElement>().unwrap();
         canvas.set_width(self.input.canvas_size.0);
         canvas.set_height(self.input.canvas_size.1);
-
-        if first_render {
-            let context: CanvasRenderingContext2d = canvas
-                .get_context("2d")
-                .unwrap()
-                .unwrap()
-                .dyn_into()
-                .unwrap();
-            context.set_font("30px Arial");
-            context
-                .fill_text("Change settings to plot!", 10.0, 50.0)
-                .unwrap();
-        } else {
-            let backend: CanvasBackend = CanvasBackend::with_canvas_object(canvas).unwrap();
-            self.plot(backend);
-        }
+        let backend: CanvasBackend = CanvasBackend::with_canvas_object(canvas).unwrap();
+        self.plot(backend);
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -82,7 +67,10 @@ impl Component for Model {
                 if let ChangeData::Value(mut f) = data {
                     log::trace!("Trying to change function index {} to {}", index, f);
                     let kind = match FnInputKind::from_str(&f) {
-                        Ok(k) => k,
+                        Ok(k) => {
+                            log::trace!("Identified function input of kind {:?}", k);
+                            k
+                        }
                         Err(e) => {
                             log::error!("{}\nInput: {}", e, f);
                             log::warn!("Function changed to default input.");
@@ -111,29 +99,26 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <>
-                <p>{ "Main settings" }</p>
-
-                <p>
-                    { "Input the functions to plot." }
-                    <div class="tooltip">{ "Available fomats?" }
-                        <span class="tooltiptext">{ "analytical: sin({x})\npoints: [(0, 2), (1, 3.5)]" }</span>
-                    </div>
-                </p>
-                { for (0..self.input.functions.len()).map(|index| self.html_fn_input(index)) }
-                <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another" }</button>
-
-
-                <p>{ "Select the domain." }</p>
-                <input type="number" id="left" name="left" value=self.input.domain.0.to_string() max=self.input.domain.1.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Left(x))/>
-                <input type="number" id="right" name="right" value=self.input.domain.1.to_string() min=self.input.domain.0.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Right(x))/>
-
-                <br/>
-
                 <canvas ref={ self.canvas_ref.clone() } />
 
-                <p>{ "Auxiliary settings" }</p>
-
-                { self.html_auxiliary_settings() }
+                <div class="MainPanel">
+                    <p>{ "Main settings" }</p>
+                    <p>
+                        { "Input the functions to plot." }
+                        <div class="tooltip">{ "Available fomats?" }
+                            <span class="tooltiptext">{ "analytical: sin({x})\npoints: [(0, 2), (1, 3.5)]" }</span>
+                        </div>
+                    </p>
+                    { for (0..self.input.functions.len()).map(|index| self.html_fn_input(index)) }
+                    <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another" }</button>
+                    <p>{ "Select the domain." }</p>
+                    <input type="number" id="left" name="left" value=self.input.domain.0.to_string() max=self.input.domain.1.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Left(x))/>
+                    <input type="number" id="right" name="right" value=self.input.domain.1.to_string() min=self.input.domain.0.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Right(x))/>
+                </div>
+                <div class="AuxiliaryPanel">
+                    <p>{ "Auxiliary settings" }</p>
+                    { self.html_auxiliary_settings() }
+                </div>
 
 
                 <footer id="footer" name="footnote">
@@ -150,28 +135,33 @@ impl Model {
     fn html_auxiliary_settings(&self) -> Html {
         html! {
             <div class="auxiliary_settings">
-                <input type="checkbox" id="title" name="title" checked=self.input.title onchange=self.link.callback(|_| Msg::Auxiliary(Set::Title))/>
-                { "Title" }
-                <input type="text" id="title_string" name="title_string" value=self.input.title_string.clone() onchange=self.link.callback(|s| Msg::Auxiliary(Set::TitleString(s)))/>
+                <div>
+                    <p>{ "Plot" }</p>
+                    <input type="checkbox" id="title" name="title" checked=self.input.title onchange=self.link.callback(|_| Msg::Auxiliary(Set::Title))/>
+                    { "Title" }
+                    <input type="text" id="title_string" name="title_string" value=self.input.title_string.clone() onchange=self.link.callback(|s| Msg::Auxiliary(Set::TitleString(s)))/>
 
-                <input type="checkbox" id="mesh" name="mesh" checked=self.input.mesh onchange=self.link.callback(|_| Msg::Auxiliary(Set::Mesh))/>
-                { "Mesh" }
+                    <input type="checkbox" id="mesh" name="mesh" checked=self.input.mesh onchange=self.link.callback(|_| Msg::Auxiliary(Set::Mesh))/>
+                    { "Mesh" }
 
-                <input type="checkbox" id="x_axis" name="x_axis" checked=self.input.x_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::XAxis))/>
-                { "X-Axis" }
+                    <input type="checkbox" id="x_axis" name="x_axis" checked=self.input.x_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::XAxis))/>
+                    { "X-Axis" }
 
-                <input type="checkbox" id="y_axis" name="y_axis" checked=self.input.y_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::YAxis))/>
-                { "Y-Axis" }
+                    <input type="checkbox" id="y_axis" name="y_axis" checked=self.input.y_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::YAxis))/>
+                    { "Y-Axis" }
 
-                { "Quality" }
-                <input type="range" id="quality" name="quality" min="2" max="1000" value=self.input.quality.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::Quality(x)))/>
+                    { "Quality" }
+                    <input type="range" id="quality" name="quality" min="2" max="1000" value=self.input.quality.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::Quality(x)))/>
+                </div>
+                <div>
+                    <p>{ "Canvas" }</p>
+                    { "width" }
+                    <input type="range" id="canvas_width" name="canvas_width" min="5" max="1600" value=self.input.canvas_size.0.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasWidth(x)))/>
 
-                { "Canvas" }
-                <input type="range" id="canvas_width" name="canvas_width" min="5" max="1600" value=self.input.canvas_size.0.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasWidth(x)))/>
-                { "width" }
+                    { "height" }
+                    <input type="range" id="canvas_height" name="canvas_height" min="5" max="1600" value=self.input.canvas_size.1.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasHeight(x)))/>
 
-                <input type="range" id="canvas_height" name="canvas_height" min="5" max="1600" value=self.input.canvas_size.1.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasHeight(x)))/>
-                { "height" }
+                </div>
             </div>
         }
     }
@@ -217,6 +207,7 @@ impl Model {
         } else {
             for function_input in &self.input.functions {
                 if function_input.show() {
+                    log::trace!("Computing values for function {:?}", function_input);
                     match function_input.kind() {
                         FnInputKind::Analytical { expression, .. } => {
                             let values: Vec<f64> = grid
