@@ -1,21 +1,22 @@
 use core::fmt::Display;
 use core::str::FromStr;
-use exmex::FlatEx;
+use exmex::OwnedFlatEx;
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use splines::{interpolation::Interpolation, key::Key, spline::Spline};
 use thiserror::Error;
 
 #[derive(Debug, Clone)]
 pub enum FnInputKind {
-    Analytical { expression: FlatEx<f64> },
-    Points { spline: Spline<f64, f64> }, //values:  Vec<(f64, f64)> },
+    Analytical { expression: OwnedFlatEx<f64> },
+    Points { spline: Spline<f64, f64> },
 }
 impl Default for FnInputKind {
     fn default() -> Self {
         let string = "sin({x})".to_string();
         FnInputKind::Analytical {
-            expression: exmex::parse::<f64>(&string, &exmex::make_default_operators::<f64>())
-                .unwrap(),
+            expression: OwnedFlatEx::from_flatex(
+                exmex::parse::<f64>(&string, &exmex::make_default_operators::<f64>()).unwrap(),
+            ),
         }
     }
 }
@@ -34,8 +35,10 @@ impl Display for FormatError {
 impl FromStr for FnInputKind {
     type Err = FormatError;
     fn from_str(s: &str) -> Result<Self, FormatError> {
-        if let Ok(expression) = exmex::parse(s, &exmex::make_default_operators::<f64>()) {
+        let string = s.to_string();
+        if let Ok(expr) = exmex::parse_with_default_ops(&string) {
             log::debug!("We noticed an analyical function :)");
+            let expression = OwnedFlatEx::from_flatex(expr);
             Ok(FnInputKind::Analytical { expression })
         } else {
             log::debug!("We noticed it was not an analyical function.");
@@ -54,7 +57,7 @@ impl FromStr for FnInputKind {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FnInput {
     pub show: bool,
     pub string: String,
@@ -95,37 +98,37 @@ impl FnInput {
     }
 }
 
-impl Serialize for FnInput {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut s = serializer.serialize_struct("FnInput", 2)?;
-        s.serialize_field("show", &self.show)?;
-        s.serialize_field("string", &self.string)?;
-        s.end()
-    }
-}
+// impl Serialize for FnInput {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer,
+//     {
+//         let mut s = serializer.serialize_struct("FnInput", 2)?;
+//         s.serialize_field("show", &self.show)?;
+//         s.serialize_field("string", &self.string)?;
+//         s.end()
+//     }
+// }
 
-impl<'de> Deserialize<'de> for FnInput {
-    fn deserialize<D>(deserializer: D) -> Result<FnInput, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Debug, Clone, Deserialize)]
-        pub struct __FnInput {
-            pub show: bool,
-            pub string: String,
-        }
-        let __fn_input = __FnInput::deserialize(deserializer)?;
-        let kind = FnInputKind::from_str(&__fn_input.string).unwrap();
-        Ok(FnInput {
-            show: __fn_input.show,
-            string: __fn_input.string,
-            kind,
-        })
-    }
-}
+// impl<'de> Deserialize<'de> for FnInput {
+//     fn deserialize<D>(deserializer: D) -> Result<FnInput, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//         #[derive(Debug, Clone, Deserialize)]
+//         pub struct __FnInput {
+//             pub show: bool,
+//             pub string: String,
+//         }
+//         let __fn_input = __FnInput::deserialize(deserializer)?;
+//         let kind = FnInputKind::from_str(&__fn_input.string).unwrap();
+//         Ok(FnInput {
+//             show: __fn_input.show,
+//             string: __fn_input.string,
+//             kind,
+//         })
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

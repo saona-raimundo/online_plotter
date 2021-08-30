@@ -33,7 +33,7 @@ impl Input {
     }
 }
 
-impl Default for Input {
+impl<'a> Default for Input {
     fn default() -> Self {
         let functions = vec![FnInput::default()];
         Self {
