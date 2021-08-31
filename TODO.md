@@ -1,3 +1,6 @@
+- Change default (no curly bracket needed)
+- Check restoring from storeload
+
 # Library
 
 ## app -> library?
@@ -51,7 +54,7 @@ To host a WASM app in GitHub, do the following:
 
 - Copy from `dist` folder to `docs` folder to update github-pages.
 
-- In `index.html`, <body> script, change the path of the `.js` and `.wasm` files.
+- In `index.html`, <link> and <body> script, change the path of the `.js` and `.wasm` files.
   From
 
   ```

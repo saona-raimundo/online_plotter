@@ -28,7 +28,7 @@ impl Component for Model {
         Self {
             link,
             canvas_ref: NodeRef::default(),
-            input: Input::restore(),
+            input: Input::restore_or_default(),
         }
     }
     fn rendered(&mut self, _first_render: bool) {
@@ -46,6 +46,7 @@ impl Component for Model {
                     log::trace!("Trying to change left to {}", x);
                     let proposal: f64 = x.parse().unwrap();
                     self.input.domain.0 = proposal.min(self.input.domain.1);
+                    self.input.store();
                 }
                 true
             }
@@ -54,6 +55,7 @@ impl Component for Model {
                     log::trace!("Trying to change right to {}", x);
                     let proposal: f64 = x.parse().unwrap();
                     self.input.domain.1 = proposal.max(self.input.domain.0);
+                    self.input.store();
                 }
                 true
             }
@@ -61,6 +63,7 @@ impl Component for Model {
                 log::trace!("Trying to toggle function {}", index);
                 self.input.functions[index].toggle();
                 log::trace!("Function {} toggled", index);
+                self.input.store();
                 true
             }
             Msg::Function(index, data) => {
@@ -80,11 +83,13 @@ impl Component for Model {
                         }
                     };
                     self.input.functions[index].set_kind(kind).set_string(f);
+                    self.input.store();
                 }
                 true
             }
             Msg::AddFnInput => {
                 self.input.functions.push(FnInput::default());
+                self.input.store();
                 true
             }
 
@@ -106,7 +111,7 @@ impl Component for Model {
                     <p>
                         { "Input the functions to plot." }
                         <div class="tooltip">{ "Available fomats?" }
-                            <span class="tooltiptext">{ "analytical: sin({x})\npoints: [(0, 2), (1, 3.5)]" }</span>
+                            <span class="tooltiptext">{ "analytical: sin(x)\npoints: [(0, 2), (1, 3.5)]" }</span>
                         </div>
                     </p>
                     { for (0..self.input.functions.len()).map(|index| self.html_fn_input(index)) }

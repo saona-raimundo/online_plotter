@@ -1,6 +1,6 @@
 [package]
 name = "online-plotter"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["raimundo saona <rasa200@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -10,7 +10,7 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.42"
-exmex = { version = "0.9.3", features = ["serde_support"] }
+exmex = { version = "0.9.4", features = ["serde_support"] }
 itertools-num = "0.1.3"
 itertools = "0.10.1"
 log = "0.4.14"

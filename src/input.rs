@@ -18,8 +18,16 @@ pub struct Input {
     pub functions: Vec<FnInput>,
 }
 
-const KEY: &'static str = "online_plotter.input";
+const KEY: &'static str = "online_plotter.v.0.1.1.input";
 impl Input {
+    pub fn restore_or_default() -> Self {
+        log::trace!("Restoring values from storage");
+        if let Ok(storage) = StorageService::new(Area::Local) {
+            storage.restore(KEY)
+        } else {
+            Self::default()
+        }
+    }
     pub fn restore() -> Self {
         log::trace!("Restoring values from storage");
         let storage = StorageService::new(Area::Local).unwrap();
