@@ -1,6 +1,3 @@
-- Change default (no curly bracket needed)
-- Check restoring from storeload
-
 # Library
 
 ## app -> library?
