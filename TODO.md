@@ -39,7 +39,23 @@
 
 # Hosting (info, not to do)
 
-## On GitHub
+
+## Developing
+- Serve (watching and rebuilding)
+	```shell
+	trunk serve
+	```
+- Serve (online)
+	```shell
+	miniserve
+	```
+### Updating toolchain
+
+```shell
+cargo install trunk --force
+```
+
+## Releasing (On GitHub)
 
 To host a WASM app in GitHub, do the following:
 
@@ -69,4 +85,5 @@ To host a WASM app in GitHub, do the following:
   (adds a dot `.`)
   
 - Check with `miniserve`.
+
 

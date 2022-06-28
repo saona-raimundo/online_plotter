@@ -2,12 +2,14 @@
 		<meta charset="utf-8">    
 		<link rel="author" href="https://saona-raimundo.github.io/">
 		<title>Online plotter</title>  
+		<!-- <link rel="stylesheet" href="style.css"> -->
 		<style>
 			/* Tooltip container */
 			.tooltip {
 			  position: relative;
 			  display: inline-block;
 			  border-bottom: 1px dotted black;
+			  margin-left: 0.2em;
 			}
 
 			/* Tooltip text */
@@ -29,10 +31,35 @@
 			.tooltip:hover .tooltiptext {
 			  visibility: visible;
 			}
+			#canvas-container {
+			   width: 100%;
+			   text-align:center;
+			}
+
+			canvas {
+			   display: inline;
+			}
+
+			section, section>div, section>div>div {
+				border: 0.1em solid black;
+				margin: 0.2em;
+				padding: 0.2em;
+			}
+
+			p.title {
+				background-color: #A7C763;
+				padding: 1em;
+
+			}
+
+			div.entry {
+				padding: 0.5em;
+			}
+
 		</style>
 	
-<link rel="preload" href="./index-70566596e3fcf9d4_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="./index-70566596e3fcf9d4.js"></head>
-	<body><noscript>This website uses JavaScript, please enable it to discover it!</noscript>&gt;
+<link rel="preload" href="/index-2c3a5dc3fd94c21f_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/index-2c3a5dc3fd94c21f.js"></head>
+	<body><noscript>This website uses JavaScript, please enable it to discover it!</noscript>
 
-<script type="module">import init from './index-70566596e3fcf9d4.js';init('./index-70566596e3fcf9d4_bg.wasm');</script></body></html>
+<script type="module">import init from './index-2c3a5dc3fd94c21f.js';init('./index-2c3a5dc3fd94c21f_bg.wasm');</script></body></html>

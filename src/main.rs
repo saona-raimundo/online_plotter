@@ -104,32 +104,40 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <>
-                <canvas ref={ self.canvas_ref.clone() } />
+                <div id="canvas-container">
+                    <canvas ref={ self.canvas_ref.clone() } />
+                </div>
 
-                <div class="MainPanel">
-                    <p>{ "Main settings" }</p>
-                    <p>
-                        { "Input the functions to plot." }
-                        <div class="tooltip">{ "Available fomats?" }
-                            <span class="tooltiptext">{ "analytical: sin(x)\npoints: [(0, 2), (1, 3.5)]" }</span>
+                <section>
+                    <div class="MainPanel">
+                        <p class="title">{ "Main settings" }</p>
+                        <div class="entry">
+                            { "Input the functions to plot." }
+                            <div class="tooltip">{ "Available fomats?" }
+                                <span class="tooltiptext">{ "analytical: sin(x)\npoints: [(0, 2), (1, 3.5)]" }</span>
+                            </div>
+                            { for (0..self.input.functions.len()).map(|index| self.html_fn_input(index)) }
+                            <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another" }</button>
                         </div>
-                    </p>
-                    { for (0..self.input.functions.len()).map(|index| self.html_fn_input(index)) }
-                    <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another" }</button>
-                    <p>{ "Select the domain." }</p>
-                    <input type="number" id="left" name="left" value=self.input.domain.0.to_string() max=self.input.domain.1.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Left(x))/>
-                    <input type="number" id="right" name="right" value=self.input.domain.1.to_string() min=self.input.domain.0.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Right(x))/>
-                </div>
-                <div class="AuxiliaryPanel">
-                    <p>{ "Auxiliary settings" }</p>
-                    { self.html_auxiliary_settings() }
-                </div>
-
+                        <div class="entry">
+                            <p>{ "Select the domain." }</p>
+                            <input type="number" id="left" name="left" value=self.input.domain.0.to_string() max=self.input.domain.1.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Left(x))/>
+                            <input type="number" id="right" name="right" value=self.input.domain.1.to_string() min=self.input.domain.0.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Right(x))/>
+                        </div>
+                    </div>
+                    <div class="AuxiliaryPanel">
+                        <p class="title">{ "Auxiliary settings" }</p>
+                        { self.html_auxiliary_settings() }
+                    </div>
+                </section>
 
                 <footer id="footer" name="footnote">
-                <p id="authorship" name="authorship">
-                    { "Author: " }<a href="https://saona-raimundo.github.io/">{ "Raimundo Saona" }</a>
-                </p>
+                    <p id="source_code" name="source_code">
+                        { "Source code: " }<a href="https://github.com/saona-raimundo/online_plotter">{ "GitHub" }</a>
+                    </p>
+                    <p id="authorship" name="authorship">
+                        { "Author: " }<a href="https://saona-raimundo.github.io/">{ "Raimundo Saona" }</a>
+                    </p>
                 </footer>
             </>
         }
@@ -141,30 +149,44 @@ impl Model {
         html! {
             <div class="auxiliary_settings">
                 <div>
-                    <p>{ "Plot" }</p>
-                    <input type="checkbox" id="title" name="title" checked=self.input.title onchange=self.link.callback(|_| Msg::Auxiliary(Set::Title))/>
-                    { "Title" }
-                    <input type="text" id="title_string" name="title_string" value=self.input.title_string.clone() onchange=self.link.callback(|s| Msg::Auxiliary(Set::TitleString(s)))/>
+                    <p class="title">{ "Plot" }</p>
+                    <div class="entry">
+                        <input type="checkbox" id="title" name="title" checked=self.input.title onchange=self.link.callback(|_| Msg::Auxiliary(Set::Title))/>
+                        { "Title" }
+                        <input type="text" id="title_string" name="title_string" value=self.input.title_string.clone() onchange=self.link.callback(|s| Msg::Auxiliary(Set::TitleString(s)))/>
+                    </div>
 
-                    <input type="checkbox" id="mesh" name="mesh" checked=self.input.mesh onchange=self.link.callback(|_| Msg::Auxiliary(Set::Mesh))/>
-                    { "Mesh" }
+                    <div class="entry">
+                        <input type="checkbox" id="mesh" name="mesh" checked=self.input.mesh onchange=self.link.callback(|_| Msg::Auxiliary(Set::Mesh))/>
+                        { "Mesh" }
+                    </div>
 
-                    <input type="checkbox" id="x_axis" name="x_axis" checked=self.input.x_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::XAxis))/>
-                    { "X-Axis" }
+                    <div class="entry">
+                        <input type="checkbox" id="x_axis" name="x_axis" checked=self.input.x_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::XAxis))/>
+                        { "X-Axis" }
+                    </div>
 
-                    <input type="checkbox" id="y_axis" name="y_axis" checked=self.input.y_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::YAxis))/>
-                    { "Y-Axis" }
+                    <div class="entry">
+                        <input type="checkbox" id="y_axis" name="y_axis" checked=self.input.y_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::YAxis))/>
+                        { "Y-Axis" }
+                    </div>
 
-                    { "Quality" }
-                    <input type="range" id="quality" name="quality" min="2" max="1000" value=self.input.quality.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::Quality(x)))/>
+                    <div class="entry">
+                        { "Quality" }
+                        <input type="range" id="quality" name="quality" min="2" max="1000" value=self.input.quality.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::Quality(x)))/>
+                    </div>
                 </div>
                 <div>
-                    <p>{ "Canvas" }</p>
-                    { "width" }
-                    <input type="range" id="canvas_width" name="canvas_width" min="5" max="1600" value=self.input.canvas_size.0.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasWidth(x)))/>
+                    <p class="title">{ "Canvas" }</p>
+                    <div class="entry">
+                        { "width" }
+                        <input type="range" id="canvas_width" name="canvas_width" min="5" max="1600" value=self.input.canvas_size.0.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasWidth(x)))/>
+                    </div>
 
-                    { "height" }
-                    <input type="range" id="canvas_height" name="canvas_height" min="5" max="1600" value=self.input.canvas_size.1.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasHeight(x)))/>
+                    <div class="entry">
+                        { "height" }
+                        <input type="range" id="canvas_height" name="canvas_height" min="5" max="1600" value=self.input.canvas_size.1.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasHeight(x)))/>
+                    </div>
 
                 </div>
             </div>
@@ -179,11 +201,11 @@ impl Model {
         let fn_string = fn_input.string.clone();
 
         html! {
-            <>
+            <div class="entry">
                 <input type="checkbox" id="y_axis" name="y_axis" checked=fn_input.show() onchange=self.link.callback(move |_| Msg::ToggleFunction(index))/>
                 <input type="text" id={ label.clone() } name={ label } autofocus=true value=fn_string onchange=self.link.callback(move |f| Msg::Function(index, f))/>
                 <br/>
-            </>
+            </div>
         }
     }
 

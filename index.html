@@ -4,12 +4,14 @@
 		<meta charset="utf-8" />    
 		<link rel="author" href="https://saona-raimundo.github.io/">
 		<title>Online plotter</title>  
+		<!-- <link rel="stylesheet" href="style.css"> -->
 		<style>
 			/* Tooltip container */
 			.tooltip {
 			  position: relative;
 			  display: inline-block;
 			  border-bottom: 1px dotted black;
+			  margin-left: 0.2em;
 			}
 
 			/* Tooltip text */
@@ -31,7 +33,32 @@
 			.tooltip:hover .tooltiptext {
 			  visibility: visible;
 			}
+			#canvas-container {
+			   width: 100%;
+			   text-align:center;
+			}
+
+			canvas {
+			   display: inline;
+			}
+
+			section, section>div, section>div>div {
+				border: 0.1em solid black;
+				margin: 0.2em;
+				padding: 0.2em;
+			}
+
+			p.title {
+				background-color: #A7C763;
+				padding: 1em;
+
+			}
+
+			div.entry {
+				padding: 0.5em;
+			}
+
 		</style>
 	</head>
-	<noscript>This website uses JavaScript, please enable it to discover it!</noscript>>
+	<noscript>This website uses JavaScript, please enable it to discover it!</noscript>
 </html>
