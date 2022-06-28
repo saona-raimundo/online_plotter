@@ -108,28 +108,32 @@ impl Component for Model {
                     <canvas ref={ self.canvas_ref.clone() } />
                 </div>
 
-                <section>
-                    <div class="MainPanel">
-                        <p class="title">{ "Main settings" }</p>
-                        <div class="entry">
-                            { "Input the functions to plot." }
-                            <div class="tooltip">{ "Available fomats?" }
-                                <span class="tooltiptext">{ "analytical: sin(x)\npoints: [(0, 2), (1, 3.5)]" }</span>
-                            </div>
+                <form>
+                    <fieldset>
+                    	<legend>{ "Main" }</legend>
+                    	<fieldset>
+	                    	<legend>{ "Functions" }</legend>
+	                    	<p>{ "There are two available format to describe functions. Analytical: sin(x). Points: [(0, 2), (1, 3.5)]."}</p>
                             { for (0..self.input.functions.len()).map(|index| self.html_fn_input(index)) }
-                            <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another" }</button>
-                        </div>
-                        <div class="entry">
-                            <p>{ "Select the domain." }</p>
-                            <input type="number" id="left" name="left" value=self.input.domain.0.to_string() max=self.input.domain.1.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Left(x))/>
-                            <input type="number" id="right" name="right" value=self.input.domain.1.to_string() min=self.input.domain.0.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Right(x))/>
-                        </div>
-                    </div>
-                    <div class="AuxiliaryPanel">
-                        <p class="title">{ "Auxiliary settings" }</p>
+                            <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another function" }</button>
+                        </fieldset>
+                        <fieldset>
+                            <legend>{ "Domain" }</legend>
+                            <div class="entry">
+                            	<label for="left">{ "Left" }</label>
+                            	<input type="number" id="left" name="left" value=self.input.domain.0.to_string() max=self.input.domain.1.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Left(x))/>
+                            </div>
+                            <div class="entry">
+                            	<label for="right">{ "Right" }</label>
+	                            <input type="number" id="right" name="right" value=self.input.domain.1.to_string() min=self.input.domain.0.to_string() step=0.1 onchange=self.link.callback(|x| Msg::Right(x))/>
+                            </div>
+                        </fieldset>
+                    </fieldset>
+                    <fieldset>
+                    	<legend>{ "Auxiliary" }</legend>
                         { self.html_auxiliary_settings() }
-                    </div>
-                </section>
+                    </fieldset>
+                </form>
 
                 <footer id="footer" name="footnote">
                     <p id="source_code" name="source_code">
@@ -147,49 +151,46 @@ impl Component for Model {
 impl Model {
     fn html_auxiliary_settings(&self) -> Html {
         html! {
-            <div class="auxiliary_settings">
-                <div>
-                    <p class="title">{ "Plot" }</p>
+        	<>
+        		<fieldset>
+        			<legend>{ "Plot" }</legend>
                     <div class="entry">
                         <input type="checkbox" id="title" name="title" checked=self.input.title onchange=self.link.callback(|_| Msg::Auxiliary(Set::Title))/>
-                        { "Title" }
+                        <label for="title">{ "Title" }</label>
                         <input type="text" id="title_string" name="title_string" value=self.input.title_string.clone() onchange=self.link.callback(|s| Msg::Auxiliary(Set::TitleString(s)))/>
                     </div>
-
                     <div class="entry">
                         <input type="checkbox" id="mesh" name="mesh" checked=self.input.mesh onchange=self.link.callback(|_| Msg::Auxiliary(Set::Mesh))/>
-                        { "Mesh" }
+                        <label for="mesh">{ "Mesh" }</label>
                     </div>
-
                     <div class="entry">
                         <input type="checkbox" id="x_axis" name="x_axis" checked=self.input.x_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::XAxis))/>
-                        { "X-Axis" }
+                        <label for="x_axis">{ "X-Axis" }</label>
                     </div>
 
                     <div class="entry">
                         <input type="checkbox" id="y_axis" name="y_axis" checked=self.input.y_axis onchange=self.link.callback(|_| Msg::Auxiliary(Set::YAxis))/>
-                        { "Y-Axis" }
+                        <label for="y_axis">{ "Y-Axis" }</label>
                     </div>
 
                     <div class="entry">
-                        { "Quality" }
+                        <label for="quality">{ "Quality" }</label>
                         <input type="range" id="quality" name="quality" min="2" max="1000" value=self.input.quality.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::Quality(x)))/>
                     </div>
-                </div>
-                <div>
-                    <p class="title">{ "Canvas" }</p>
+        		</fieldset>
+        		<fieldset>
+        			<legend>{ "Canvas" }</legend>
                     <div class="entry">
-                        { "width" }
+                        <label for="canvas_width">{ "Width" }</label>
                         <input type="range" id="canvas_width" name="canvas_width" min="5" max="1600" value=self.input.canvas_size.0.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasWidth(x)))/>
                     </div>
 
                     <div class="entry">
-                        { "height" }
+                        <label for="canvas_height">{ "Height" }</label>
                         <input type="range" id="canvas_height" name="canvas_height" min="5" max="1600" value=self.input.canvas_size.1.to_string() class="slider" onchange=self.link.callback(|x| Msg::Auxiliary(Set::CanvasHeight(x)))/>
                     </div>
-
-                </div>
-            </div>
+        		</fieldset>
+        	</>
         }
     }
 
@@ -204,7 +205,6 @@ impl Model {
             <div class="entry">
                 <input type="checkbox" id="y_axis" name="y_axis" checked=fn_input.show() onchange=self.link.callback(move |_| Msg::ToggleFunction(index))/>
                 <input type="text" id={ label.clone() } name={ label } autofocus=true value=fn_string onchange=self.link.callback(move |f| Msg::Function(index, f))/>
-                <br/>
             </div>
         }
     }
