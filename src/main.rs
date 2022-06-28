@@ -203,7 +203,7 @@ impl Model {
 
         html! {
             <div class="entry">
-                <input type="checkbox" id="y_axis" name="y_axis" checked=fn_input.show() onchange=self.link.callback(move |_| Msg::ToggleFunction(index))/>
+                <input type="checkbox" name="function_toogler" checked=fn_input.show() onchange=self.link.callback(move |_| Msg::ToggleFunction(index))/>
                 <input type="text" id={ label.clone() } name={ label } autofocus=true value=fn_string onchange=self.link.callback(move |f| Msg::Function(index, f))/>
             </div>
         }

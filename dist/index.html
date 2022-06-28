@@ -50,34 +50,8 @@
 
 		</style>
 	
-<link rel="preload" href="/index-3e14cea8a66b24da_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/index-3e14cea8a66b24da.js"></head>
+<link rel="preload" href="/index-4465ebf3a93f9214_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/index-4465ebf3a93f9214.js"></head>
 	<body><noscript>This website uses JavaScript, please enable it to discover it!</noscript>
 
-<script type="module">import init from '/index-3e14cea8a66b24da.js';init('/index-3e14cea8a66b24da_bg.wasm');</script><script>(function () {
-    var url = 'ws://' + window.location.host + '/_trunk/ws';
-    var poll_interval = 5000;
-    var reload_upon_connect = () => {
-        window.setTimeout(
-            () => {
-                // when we successfully reconnect, we'll force a
-                // reload (since we presumably lost connection to
-                // trunk due to it being killed, so it will have
-                // rebuilt on restart)
-                var ws = new WebSocket(url);
-                ws.onopen = () => window.location.reload();
-                ws.onclose = reload_upon_connect;
-            },
-            poll_interval);
-    };
-
-    var ws = new WebSocket(url);
-    ws.onmessage = (ev) => {
-        const msg = JSON.parse(ev.data);
-        if (msg.reload) {
-            window.location.reload();
-        }
-    };
-    ws.onclose = reload_upon_connect;
-})()
-</script></body></html>
+<script type="module">import init from './index-4465ebf3a93f9214.js';init('./index-4465ebf3a93f9214_bg.wasm');</script></body></html>
