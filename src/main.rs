@@ -113,7 +113,11 @@ impl Component for Model {
                     	<legend>{ "Main" }</legend>
                     	<fieldset>
 	                    	<legend>{ "Functions" }</legend>
-	                    	<p>{ "There are two available format to describe functions. Analytical: sin(x). Points: [(0, 2), (1, 3.5)]."}</p>
+	                    	<p>{ "There are two available formats:"}</p>
+                            <ul>
+                                <li>{ "Analytical: sin(x)" }</li>
+                                <li>{ "Points: [(0, 2), (1, 3.5)]" }</li>
+                            </ul>
                             { for (0..self.input.functions.len()).map(|index| self.html_fn_input(index)) }
                             <button type="button" id="add_fn_input" name="add_fn_input" onclick=self.link.callback(|_| Msg::AddFnInput)>{ "Add another function" }</button>
                         </fieldset>
