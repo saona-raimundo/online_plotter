@@ -1,26 +1,15 @@
-# Library
+# TODO
 
-## app -> library?
+## More Features
 
-### Canvas
-
-- Check out [yew-components](https://crates.io/crates/yew-components/0.3.0)
-- Create yew_plotters crate
-
-### Testing
-
-- use [wasm-bindgen-test](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html)
-
-# Features
-
-## Website
+### Website
 
 - FAQ
   - Static
 
-## Frontend
+### Frontend
 
-### Resize
+#### Resize
 
 - https://stackoverflow.com/questions/8960193/how-to-make-html-element-resizable-using-pure-javascript
 - http://anhr.github.io/resizer/
@@ -28,19 +17,17 @@
 - https://www.w3schools.com/cssref/css3_pr_resize.asp
 - https://spin.atomicobject.com/2019/11/21/creating-a-resizable-html-element/
 
-### Responsive design
+#### Responsive design
 
 - Create two (or more) different views!
 - https://www.w3schools.com/css/css_rwd_viewport.asp
 
-## Backend
 
 
+## Hosting (info, not to do)
 
-# Hosting (info, not to do)
+### Developing
 
-
-## Developing
 - Serve (watching and rebuilding)
 	```shell
 	trunk serve
@@ -49,13 +36,13 @@
 	```shell
 	miniserve
 	```
-### Updating toolchain
+#### Updating toolchain
 
 ```shell
 cargo install trunk --force
 ```
 
-## Releasing (On GitHub)
+### Releasing (On GitHub)
 
 To host a WASM app in GitHub, do the following:
 
