@@ -15,9 +15,8 @@
     }
   ],
   "start_url": "/index.html",
-  "display": "fullscreen", // standalone, minimal-ui, or browser
-  "theme_color": "#B12A34", // primary color for the UI, used by operating system
-  "background_color": "#B12A34" //  app's default background, used during install and on the splash screen
-  // See the reference for more fields: https://developer.mozilla.org/en-US/docs/Web/Manifest
+  "display": "fullscreen",
+  "theme_color": "#B12A34",
+  "background_color": "#B12A34"
 }
 
