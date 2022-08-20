@@ -1,0 +1,23 @@
+{
+  "name": "Online plotter",
+  "short_name": "plotter",
+  "description": "Minimal plotter of functions and data points in 2D.",
+  "icons": [
+    {
+      "src": "icons/icon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/index.html",
+  "display": "fullscreen", // standalone, minimal-ui, or browser
+  "theme_color": "#B12A34", // primary color for the UI, used by operating system
+  "background_color": "#B12A34" //  app's default background, used during install and on the splash screen
+  // See the reference for more fields: https://developer.mozilla.org/en-US/docs/Web/Manifest
+}
+
